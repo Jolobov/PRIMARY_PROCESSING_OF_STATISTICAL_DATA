@@ -141,7 +141,7 @@ class Statistics:
             return list(set(interval_values))
 
     def __calculate_average_xi_values(self):
-        xi_values = self.__calculate_xi_values()
+        xi_values = self.__calculate_xi_values
 
         return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
 
@@ -185,7 +185,7 @@ class Statistics:
         variation_series = self.__calculate_variation_series()
         print(variation_series)
 
-    def __calculate_frequency_distribution(self):
+    def __calculate_frequency_distribution(self, data):
         variation_series = self.__calculate_variation_series()
         data_values = self.__get_data_values()
         frequencies = []
@@ -201,15 +201,15 @@ class Statistics:
         return variation_series, frequencies, relative_frequencies
 
     def display_frequency_distribution(self=None):
-        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution())
+        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution(self.data))
 
         print("\nСтатистический ряд частот:")
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
-    def __plot_histogram(self):
+    def __plot_histogram(self, data):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution())
+            self.__calculate_frequency_distribution(data))
 
         plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
         plt.xlabel('Значения')
@@ -218,11 +218,11 @@ class Statistics:
         plt.show()
 
     def display_histogram(self=None):
-        self.__plot_histogram()
+        self.__plot_histogram(self.data)
 
-    def __plot_polygon(self):
+    def __plot_polygon(self, data):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution())
+            self.__calculate_frequency_distribution(data))
 
         plt.plot(variation_series, relative_frequencies, marker='o')
         plt.xlabel('Значения')
@@ -231,11 +231,11 @@ class Statistics:
         plt.show()
 
     def display_polygon(self=None):
-        self.__plot_polygon()
+        self.__plot_polygon(self.data)
 
-    def __calculate_empirical_distribution(self):
+    def __calculate_empirical_distribution(self, data):
         variation_series, frequencies, _ = (
-            self.__calculate_frequency_distribution())
+            self.__calculate_frequency_distribution(data))
 
         sum_frequencies = sum(frequencies)
 
@@ -246,7 +246,7 @@ class Statistics:
 
     def display_empirical_distribution(self=None):
         variation_series, probability_distribution, cumulative_distribution = (
-            self.__calculate_empirical_distribution())
+            self.__calculate_empirical_distribution(self.data))
 
         print("\nЭмпирическая функция распределения:")
         for variation, probability, cumulative in zip(variation_series, probability_distribution,
@@ -255,9 +255,8 @@ class Statistics:
                   f"Уникальные значения: {probability},"
                   f"Накопительная функция распределения: {cumulative}")
 
-    def __plot_empirical_distribution(self):
-        variation_series, probability_distribution, cumulative_distribution = \
-            (self.__calculate_empirical_distribution())
+    def __plot_empirical_distribution(self, data):
+        variation_series, probability_distribution, cumulative_distribution = (self.__calculate_empirical_distribution(data))
 
         plt.plot(variation_series, cumulative_distribution, marker='o')
         plt.xlabel('Значения')
@@ -266,7 +265,7 @@ class Statistics:
         plt.show()
 
     def display_plot_empirical_distribution(self=None):
-        self.__plot_empirical_distribution()
+        self.__plot_empirical_distribution(self.data)
 
     @staticmethod
     def __text_numerical_characteristics_formulas_array():
@@ -279,9 +278,6 @@ class Statistics:
         print("\nФормула для стандартного отклонения:")
         print("квадратный корень из дисперсии")
 
-        print("\nФормула для размаха:")
-        print("разница между максимальным и минимальным значениями в ряде")
-
     @staticmethod
     def __text_numerical_characteristics_formulas_intervals():
         print("\nФормула для среднего значения:")
@@ -293,9 +289,6 @@ class Statistics:
 
         print("\nФормула для стандартного отклонения:")
         print("квадратный корень из дисперсии интервалов")
-
-        print("\nФормула для размаха:")
-        print("разница между верхним и нижним концами интервала с наибольшей длиной")
 
     def __calculate_mean(self):
         if self.__data_type_is_array():
@@ -334,24 +327,15 @@ class Statistics:
 
             return np.sqrt(variance)
 
-    def __calculate_data_range(self):
-        xi_values = self.__calculate_xi_values()
-        if self.__data_type_is_array:
-            return np.ptp(xi_values)
-
-        if self.__data_type_is_intervals():
-            return np.sqrt(xi_values)
-
     def __calculate_numerical_characteristics(self):
         mean = self.__calculate_mean()
         variance = self.__calculate_variance()
         std_deviation = self.__calculate_std_deviation()
-        data_range = self.__calculate_data_range()
 
-        return mean, variance, std_deviation, data_range
+        return mean, variance, std_deviation
 
     def display_numerical_characteristics(self=None):
-        mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics()
+        mean, variance, std_deviation = self.__calculate_numerical_characteristics()
         data_type = self.data['type']
         print("\nЧисловые характеристики выборки:")
 
@@ -364,7 +348,6 @@ class Statistics:
         print("\nСреднее значение (x̄):", mean)
         print("Дисперсия (D):", variance)
         print("Стандартное отклонение (σ):", std_deviation)
-        print("Размах (S):", data_range)
 
 
 class Menu:
@@ -431,17 +414,9 @@ def main():
             elif choice == '3':
                 statistics_instance.display_frequency_distribution()
             elif choice == '4':
-                statistics_instance.display_histogram()
-            elif choice == '5':
-                statistics_instance.display_polygon()
-            elif choice == '6':
-                statistics_instance.display_empirical_distribution()
-            elif choice == '7':
-                statistics_instance.display_plot_empirical_distribution()
-            elif choice == '8':
                 statistics_instance.display_numerical_characteristics()
             else:
-                print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
+                print("Некорректный выбор. Пожалуйста, выберите от 0 до 4.")
 
 
 if __name__ == "__main__":
