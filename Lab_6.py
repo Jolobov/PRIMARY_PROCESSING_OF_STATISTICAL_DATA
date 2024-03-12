@@ -169,68 +169,6 @@ class Statistics:
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
-<<<<<<< HEAD
-=======
-    def __plot_histogram__(self, data):
-        variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution__(data))
-
-        plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
-        plt.xlabel('Значения')
-        plt.ylabel('Частота')
-        plt.title('Статистический ряд')
-        plt.show()
-
-    def display_histogram(self=None):
-        self.__plot_histogram__(self.data)
-
-    def __plot_polygon__(self, data):
-        variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution__(data))
-
-        plt.plot(variation_series, relative_frequencies, marker='o')
-        plt.xlabel('Значения')
-        plt.ylabel('Относительная частота')
-        plt.title('Полигон распределения')
-        plt.show()
-
-    def display_polygon(self=None):
-        self.__plot_polygon__(self.data)
-
-    def __calculate_empirical_distribution__(self, data):
-        variation_series, frequencies, _ = (
-            self.__calculate_frequency_distribution__(data))
-        sum_frequencies = sum(frequencies)
-
-        probability_distribution = frequencies / sum_frequencies
-        cumulative_distribution = np.cumsum(frequencies) / sum_frequencies
-
-        return variation_series, probability_distribution, cumulative_distribution
-
-    def display_empirical_distribution(self=None):
-        variation_series, probability_distribution, cumulative_distribution = (
-            self.__calculate_empirical_distribution__(self.data))
-
-        print("\nЭмпирическая функция распределения:")
-        for variation, probability, cumulative in zip(variation_series, probability_distribution,
-                                                      cumulative_distribution):
-            print(f"Значение: {variation},"
-                  f"Уникальные значения: {probability},"
-                  f"Накопительная функция распределения: {cumulative}")
-
-    def __plot_empirical_distribution__(self, data):
-        variation_series, probability_distribution, cumulative_distribution = (self.__calculate_empirical_distribution__(data))
-
-        plt.plot(variation_series, cumulative_distribution, marker='o')
-        plt.xlabel('Значения')
-        plt.ylabel('Накопительная функция распределения')
-        plt.title('График эмпирической функции распределения')
-        plt.show()
-
-    def display_plot_empirical_distribution(self=None):
-        self.__plot_empirical_distribution__(self.data)
-
->>>>>>> remote/master
     @staticmethod
     def __display_numerical_characteristics_formulas_array__():
         print("\nФормула для среднего значения:")
@@ -393,23 +331,9 @@ def main():
             elif choice == '3':
                 statistics_instance.display_frequency_distribution()
             elif choice == '4':
-<<<<<<< HEAD
                 statistics_instance.display_numerical_characteristics()
             else:
                 print("Некорректный выбор. Пожалуйста, выберите от 0 до 4.")
-=======
-                statistics_instance.display_histogram()
-            elif choice == '5':
-                statistics_instance.display_polygon()
-            elif choice == '6':
-                statistics_instance.display_empirical_distribution()
-            elif choice == '7':
-                statistics_instance.display_plot_empirical_distribution()
-            elif choice == '8':
-                statistics_instance.display_numerical_characteristics()
-            else:
-                print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
->>>>>>> remote/master
 
 
 if __name__ == "__main__":

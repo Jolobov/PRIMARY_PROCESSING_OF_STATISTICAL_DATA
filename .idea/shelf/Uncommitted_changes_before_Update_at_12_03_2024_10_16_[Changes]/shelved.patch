@@ -1,0 +1,358 @@
+Index: Lab_6.py
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/Lab_6.py b/Lab_6.py
+new file mode 100644
+--- /dev/null	(date 1710227801046)
++++ b/Lab_6.py	(date 1710227801046)
+@@ -0,0 +1,348 @@
++import matplotlib.pyplot as plt
++import numpy as np
++import json
++from enum import Enum
++
++
++class DataType(Enum):
++    ARRAY = 'Массив'
++    INTERVALS = 'Интервалы'
++
++
++class Data:
++    def __init__(self):
++        self.data = {}
++
++    @staticmethod
++    def __input_type():
++        return input(f"\nВведите тип данных {DataType.ARRAY.value} или {DataType.INTERVALS.value} (1-2): ")
++
++    @staticmethod
++    def __get_file_path(file_type):
++        if file_type == '1':
++            return 'statistical_data_array.json'
++
++        elif file_type == '2':
++            return 'statistical_data_intervals.json'
++
++        else:
++            return None
++
++    @staticmethod
++    def __get_data_type(data_type):
++        if data_type == '1':
++            return DataType.ARRAY
++
++        elif data_type == '2':
++            return DataType.INTERVALS
++
++        else:
++            return None
++
++    @staticmethod
++    def __read_file(file_path):
++        try:
++            with open(file_path, 'r') as file:
++                print(f"Файл '{file_path}' успешно найден.")
++
++                return json.load(file)
++        except FileNotFoundError:
++            print(f"Ошибка: Файл '{file_path}' не найден.")
++        except json.JSONDecodeError as e:
++            print(f"Ошибка при декодировании JSON в файле '{file_path}': {e}")
++        except ValueError as e:
++            print(f"Ошибка значения при чтении файла '{file_path}': {e}")
++        except Exception as e:
++            print(f"Произошла неизвестная ошибка при чтении файла '{file_path}': {e}")
++
++    @staticmethod
++    def __write_data(data_type):
++        data = {'type': data_type}
++
++        if data_type == DataType.ARRAY:
++            data['data'] = [float(x) for x in input("Введите числа через пробел: ").split()]
++
++        elif data_type == DataType.INTERVALS:
++            num_values = int(input("\nВведите количество значений: "))
++            data['data'] = []
++
++            for value in range(num_values):
++                print(f"\nЗначение {value + 1}:")
++                start = float(input("Введите начало интервала: "))
++                end = float(input("Введите конец интервала: "))
++                frequency = float(input("Введите частоту: "))
++                data["data"].append({"start": start, "end": end, "frequency": frequency})
++
++        else:
++            print("Неизвестный тип данных.")
++
++        return data
++
++    def input_file(self):
++        while True:
++            input_type = self.__input_type()
++            file_type = self.__get_data_type(input_type)
++            file_path = self.__get_file_path(input_type)
++
++            if file_type in [type for type in DataType]:
++                self.data = self.__read_file(file_path)
++                break
++
++            else:
++                print("\nНекорректный выбор. Пожалуйста, выберите 1 или 2.")
++
++    def input_keyboard(self=None):
++        while True:
++            file_type = self.__input_type()
++            data_type = self.__get_data_type(file_type)
++
++            if file_type in [type for type in DataType]:
++                self.data = self.__write_data(data_type)
++                break
++
++            else:
++                print("\nНекорректный выбор. Пожалуйста, выберите 1 или 2.")
++
++    def get_data(self=None):
++        return self.data
++
++
++class Statistics:
++
++    def __init__(self):
++        self.data = {}
++
++    def set_data(self, data):
++        self.data = data
++
++    def show_data(self=None):
++        print(self.data.values())
++        data_type = self.data.get('type')
++        data_body = np.array(self.data['data'])
++
++        if data_type == DataType.ARRAY.value:
++            print("\nСодержимое файла:\n", data_body)
++
++        elif data_type == DataType.INTERVALS.value:
++            print("\nСодержимое файла:\n", data_body)
++
++        else:
++            print("\nНеизвестный тип данных:", data_type)
++
++    @staticmethod
++    def __format_interval__(start, end):
++        return f"{start} ; {end}"
++
++    def __calculate_variation_series__(self, data):
++        data_type = data['type']
++        data_body = data['data']
++
++        if data_type == DataType.ARRAY.name:
++            return sorted(set(data_body))
++
++        if data_type == DataType.INTERVALS.name:
++            return [self.__format_interval__(interval["start"], interval["end"]) for interval in data_body]
++
++    def display_variation_series(self=None):
++        variation_series = self.__calculate_variation_series__(self.data)
++        print(variation_series)
++
++    def __calculate_frequency_distribution__(self, data):
++        variation_series = self.__calculate_variation_series__(data)
++        frequencies = []
++        data_type = data['type']
++        data_body = data['data']
++
++        if data_type == DataType.ARRAY.name:
++            frequencies = np.array([data_body.count(value) for value in variation_series])
++
++        elif data_type == DataType.INTERVALS.name:
++            frequencies = np.array([values["frequency"] for values in data_body])
++
++        relative_frequencies = frequencies / sum(frequencies)
++        return variation_series, frequencies, relative_frequencies
++
++    def display_frequency_distribution(self=None):
++        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution__(self.data))
++
++        print("\nСтатистический ряд частот:")
++        for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
++            print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
++
++    @staticmethod
++    def __display_numerical_characteristics_formulas_array__():
++        print("\nФормула для среднего значения:")
++        print("сумма всех значений / количество значений")
++
++        print("\nФормула для дисперсии:")
++        print("сумма квадратов разностей между каждым значением и средним, деленная на количество значений")
++
++        print("\nФормула для стандартного отклонения:")
++        print("квадратный корень из дисперсии")
++
++        print("\nФормула для размаха:")
++        print("разница между максимальным и минимальным значениями в ряде")
++
++    @staticmethod
++    def __display_numerical_characteristics_formulas_intervals__():
++        print("\nФормула для среднего значения:")
++        print("сумма (середина интервала * частота) / общее количество значений")
++
++        print("\nФормула для дисперсии:")
++        print("(сумма (квадрат разности среднего значения интервала и среднего значения всего ряда * частота)) "
++              "/ общее количество значений")
++
++        print("\nФормула для стандартного отклонения:")
++        print("квадратный корень из дисперсии интервалов")
++
++        print("\nФормула для размаха:")
++        print("разница между верхним и нижним концами интервала с наибольшей длиной")
++
++    @staticmethod
++    def __calculate_weighted_mean__(xi_values, ni_values):
++        return sum(xi * ni for xi, ni in zip(xi_values, ni_values)) / sum(ni_values)
++
++    @staticmethod
++    def __calculate_variance__(xi_values, ni_values, mean):
++        return sum(ni_values[i] * ((xi_values[i] - mean) ** 2) for i in range(len(xi_values))) / sum(ni_values)
++
++    @staticmethod
++    def __calculate_average_values__(xi_values):
++        return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
++
++    @staticmethod
++    def __init_numerical_characteristics__():
++        mean = np.array([])
++        variance = np.array([])
++        std_deviation = np.array([])
++        data_range = np.array([])
++
++        return mean, variance, std_deviation, data_range
++
++    def __calculate_numerical_characteristics__(self, data):
++        mean, variance, std_deviation, data_range = self.__init_numerical_characteristics__()
++        data_type = data['type']
++        data_body = data['data']
++
++        if data_type == DataType.ARRAY.name:
++            variations = np.array(data_body)
++
++            mean = np.mean(variations)
++            variance = np.var(variations)
++            std_deviation = np.std(variations)
++            data_range = np.ptp(variations)
++
++        if data_type == DataType.INTERVALS.name:
++            frequency = np.array([values["frequency"] for values in data_body])
++
++            interval_values = [interval for intervals in data_body
++                               for interval in (intervals["start"], intervals["end"])]
++
++            xi_values = list(set(interval_values))
++            ni_values = list(frequency)
++
++            average_values = self.__calculate_average_values__(xi_values)
++
++            mean = self.__calculate_weighted_mean__(average_values, ni_values)
++            variance = self.__calculate_variance__(average_values, ni_values, mean)
++            std_deviation = np.sqrt(variance)
++            data_range = np.ptp(xi_values)
++
++        return mean, variance, std_deviation, data_range
++
++    def display_numerical_characteristics(self=None):
++        mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics__(self.data)
++        data_type = self.data['type']
++        print("\nЧисловые характеристики выборки:")
++
++        if data_type == DataType.ARRAY.value:
++            self.__display_numerical_characteristics_formulas_array__()
++
++        if data_type == DataType.INTERVALS.value:
++            self.__display_numerical_characteristics_formulas_intervals__()
++
++        print("\nСреднее значение (x̄):", mean)
++        print("Дисперсия (D):", variance)
++        print("Стандартное отклонение (σ):", std_deviation)
++        print("Размах (S):", data_range)
++
++
++class Menu:
++    @staticmethod
++    def display_input():
++        print("\nМеню:")
++        print("1. Ввод из файла")
++        print("2. Ввод с клавиатуры")
++        print("0. Выход")
++
++    @staticmethod
++    def display_main():
++        print("\nМеню:")
++        print("1. Вывести содержимое файла")
++        print("2. Вывести вариационный ряд")
++        print("3. Вывести статистический ряд частот и относительных частот")
++        print("4. Построить гистограмму распределения")
++        print("5. Построить полигон распределения")
++        print("6. Вывести эмпирическую функцию распределения")
++        print("7. Вывести график эмпирической функции распределения")
++        print("8. Вывести числовые характеристики выборки")
++        print("0. Выход")
++
++
++def main():
++    data_instance = Data()
++    statistics_instance = Statistics()
++
++    data_loaded = False
++
++    while True:
++        Menu.display_input()
++
++        choice = input("Выберите пункт меню (0-2): ")
++
++        if choice == '0':
++            print("Программа завершена.")
++            break
++        elif choice == '1':
++            data_instance.input_file()
++            data_loaded = True
++            break
++        elif choice == '2':
++            data_instance.input_keyboard()
++            data_loaded = True
++            break
++        else:
++            print("Некорректный выбор. Пожалуйста, выберите 1 или 2.")
++
++    if data_loaded:
++        statistics_instance.set_data(data_instance.get_data())
++
++        while True:
++            Menu.display_main()
++            choice = input("Выберите пункт меню (0-8): ")
++
++            if choice == '0':
++                print("Программа завершена.")
++                break
++            elif choice == '1':
++                statistics_instance.show_data()
++            elif choice == '2':
++                statistics_instance.display_variation_series()
++            elif choice == '3':
++                statistics_instance.display_frequency_distribution()
++            elif choice == '4':
++                statistics_instance.display_histogram()
++            elif choice == '5':
++                statistics_instance.display_polygon()
++            elif choice == '6':
++                statistics_instance.display_empirical_distribution()
++            elif choice == '7':
++                statistics_instance.display_plot_empirical_distribution()
++            elif choice == '8':
++                statistics_instance.display_numerical_characteristics()
++            else:
++                print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
++
++
++if __name__ == "__main__":
++    main()
