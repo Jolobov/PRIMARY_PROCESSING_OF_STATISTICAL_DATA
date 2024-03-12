@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import json
+
 from enum import Enum
 
 
@@ -20,10 +21,10 @@ class Data:
     @staticmethod
     def __get_file_path(file_type):
         if file_type == '1':
-            return 'statistical_data_array.json'
+            return 'data_array.json'
 
         elif file_type == '2':
-            return 'statistical_data_intervals.json'
+            return 'data_intervals.json'
 
         else:
             return None
@@ -115,6 +116,44 @@ class Statistics:
     def set_data(self, data):
         self.data = data
 
+    def __get_data_type(self):
+        return self.data['type']
+
+    def __data_type_is_array(self):
+        return self.data['type'] == DataType.ARRAY.name
+
+    def __data_type_is_intervals(self):
+        return self.data['type'] == DataType.INTERVALS.name
+
+    def __get_data_values(self):
+        return self.data['data']
+
+    def __calculate_xi_values(self):
+        data_values = self.__get_data_values()
+
+        if self.__data_type_is_array():
+            return np.array(data_values)
+
+        if self.__data_type_is_intervals():
+            interval_values = [interval for intervals in data_values
+                               for interval in (intervals["start"], intervals["end"])]
+
+            return list(set(interval_values))
+
+    def __calculate_average_xi_values(self):
+        xi_values = self.__calculate_xi_values
+
+        return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
+
+    def __calculate_ni_values(self):
+        data_values = self.__get_data_values()
+
+        if self.__data_type_is_array():
+            return np.array(data_values)
+
+        if self.__data_type_is_intervals():
+            return list(np.array([values["frequency"] for values in data_values]))
+
     def show_data(self=None):
         print(self.data.values())
         data_type = self.data.get('type')
@@ -130,47 +169,106 @@ class Statistics:
             print("\nНеизвестный тип данных:", data_type)
 
     @staticmethod
-    def __format_interval__(start, end):
+    def __format_interval(start, end):
         return f"{start} ; {end}"
 
-    def __calculate_variation_series__(self, data):
-        data_type = data['type']
-        data_body = data['data']
+    def __calculate_variation_series(self):
+        data_values = self.__get_data_values()
 
-        if data_type == DataType.ARRAY.name:
-            return sorted(set(data_body))
+        if self.__data_type_is_array():
+            return sorted(set(data_values))
 
-        if data_type == DataType.INTERVALS.name:
-            return [self.__format_interval__(interval["start"], interval["end"]) for interval in data_body]
+        if self.__data_type_is_intervals():
+            return [self.__format_interval(interval["start"], interval["end"]) for interval in data_values]
 
     def display_variation_series(self=None):
-        variation_series = self.__calculate_variation_series__(self.data)
+        variation_series = self.__calculate_variation_series()
         print(variation_series)
 
-    def __calculate_frequency_distribution__(self, data):
-        variation_series = self.__calculate_variation_series__(data)
+    def __calculate_frequency_distribution(self, data):
+        variation_series = self.__calculate_variation_series()
+        data_values = self.__get_data_values()
         frequencies = []
-        data_type = data['type']
-        data_body = data['data']
 
-        if data_type == DataType.ARRAY.name:
-            frequencies = np.array([data_body.count(value) for value in variation_series])
+        if self.__data_type_is_array():
+            frequencies = np.array([data_values.count(value) for value in variation_series])
 
-        elif data_type == DataType.INTERVALS.name:
-            frequencies = np.array([values["frequency"] for values in data_body])
+        elif self.__data_type_is_intervals():
+            frequencies = np.array([values["frequency"] for values in data_values])
 
         relative_frequencies = frequencies / sum(frequencies)
+
         return variation_series, frequencies, relative_frequencies
 
     def display_frequency_distribution(self=None):
-        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution__(self.data))
+        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution(self.data))
 
         print("\nСтатистический ряд частот:")
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
+    def __plot_histogram(self, data):
+        variation_series, frequencies, relative_frequencies = (
+            self.__calculate_frequency_distribution(data))
+
+        plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
+        plt.xlabel('Значения')
+        plt.ylabel('Частота')
+        plt.title('Статистический ряд')
+        plt.show()
+
+    def display_histogram(self=None):
+        self.__plot_histogram(self.data)
+
+    def __plot_polygon(self, data):
+        variation_series, frequencies, relative_frequencies = (
+            self.__calculate_frequency_distribution(data))
+
+        plt.plot(variation_series, relative_frequencies, marker='o')
+        plt.xlabel('Значения')
+        plt.ylabel('Относительная частота')
+        plt.title('Полигон распределения')
+        plt.show()
+
+    def display_polygon(self=None):
+        self.__plot_polygon(self.data)
+
+    def __calculate_empirical_distribution(self, data):
+        variation_series, frequencies, _ = (
+            self.__calculate_frequency_distribution(data))
+
+        sum_frequencies = sum(frequencies)
+
+        probability_distribution = frequencies / sum_frequencies
+        cumulative_distribution = np.cumsum(frequencies) / sum_frequencies
+
+        return variation_series, probability_distribution, cumulative_distribution
+
+    def display_empirical_distribution(self=None):
+        variation_series, probability_distribution, cumulative_distribution = (
+            self.__calculate_empirical_distribution(self.data))
+
+        print("\nЭмпирическая функция распределения:")
+        for variation, probability, cumulative in zip(variation_series, probability_distribution,
+                                                      cumulative_distribution):
+            print(f"Значение: {variation},"
+                  f"Уникальные значения: {probability},"
+                  f"Накопительная функция распределения: {cumulative}")
+
+    def __plot_empirical_distribution(self, data):
+        variation_series, probability_distribution, cumulative_distribution = (self.__calculate_empirical_distribution(data))
+
+        plt.plot(variation_series, cumulative_distribution, marker='o')
+        plt.xlabel('Значения')
+        plt.ylabel('Накопительная функция распределения')
+        plt.title('График эмпирической функции распределения')
+        plt.show()
+
+    def display_plot_empirical_distribution(self=None):
+        self.__plot_empirical_distribution(self.data)
+
     @staticmethod
-    def __display_numerical_characteristics_formulas_array__():
+    def __text_numerical_characteristics_formulas_array():
         print("\nФормула для среднего значения:")
         print("сумма всех значений / количество значений")
 
@@ -184,7 +282,7 @@ class Statistics:
         print("разница между максимальным и минимальным значениями в ряде")
 
     @staticmethod
-    def __display_numerical_characteristics_formulas_intervals__():
+    def __text_numerical_characteristics_formulas_intervals():
         print("\nФормула для среднего значения:")
         print("сумма (середина интервала * частота) / общее количество значений")
 
@@ -198,68 +296,69 @@ class Statistics:
         print("\nФормула для размаха:")
         print("разница между верхним и нижним концами интервала с наибольшей длиной")
 
-    @staticmethod
-    def __calculate_weighted_mean__(xi_values, ni_values):
-        return sum(xi * ni for xi, ni in zip(xi_values, ni_values)) / sum(ni_values)
+    def __calculate_mean(self):
+        if self.__data_type_is_array():
+            xi_values = self.__calculate_xi_values()
+            return np.mean(xi_values)
 
-    @staticmethod
-    def __calculate_variance__(xi_values, ni_values, mean):
-        return sum(ni_values[i] * ((xi_values[i] - mean) ** 2) for i in range(len(xi_values))) / sum(ni_values)
+        if self.__data_type_is_intervals():
+            average_xi_values = self.__calculate_average_xi_values()
+            ni_values = self.__calculate_ni_values()
 
-    @staticmethod
-    def __calculate_average_values__(xi_values):
-        return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
+            return sum(xi * ni for xi, ni in zip(average_xi_values, ni_values)) / sum(ni_values)
 
-    @staticmethod
-    def __init_numerical_characteristics__():
-        mean = np.array([])
-        variance = np.array([])
-        std_deviation = np.array([])
-        data_range = np.array([])
+    def __calculate_variance(self):
+        ni_values = self.__calculate_ni_values()
 
-        return mean, variance, std_deviation, data_range
+        if self.__data_type_is_array():
+            xi_values = self.__calculate_xi_values()
 
-    def __calculate_numerical_characteristics__(self, data):
-        mean, variance, std_deviation, data_range = self.__init_numerical_characteristics__()
-        data_type = data['type']
-        data_body = data['data']
+            return np.var(xi_values)
 
-        if data_type == DataType.ARRAY.name:
-            variations = np.array(data_body)
+        if self.__data_type_is_intervals():
+            average_xi_values = self.__calculate_average_xi_values()
+            mean = self.__calculate_mean()
 
-            mean = np.mean(variations)
-            variance = np.var(variations)
-            std_deviation = np.std(variations)
-            data_range = np.ptp(variations)
+            return sum(ni_values[i] * ((average_xi_values[i] - mean) ** 2)
+                       for i in range(len(average_xi_values))) / sum(ni_values)
 
-        if data_type == DataType.INTERVALS.name:
-            frequency = np.array([values["frequency"] for values in data_body])
+    def __calculate_std_deviation(self):
+        if self.__data_type_is_array:
+            xi_values = self.__calculate_xi_values()
 
-            interval_values = [interval for intervals in data_body
-                               for interval in (intervals["start"], intervals["end"])]
+            return np.std(xi_values)
 
-            xi_values = list(set(interval_values))
-            ni_values = list(frequency)
+        if self.__data_type_is_intervals():
+            variance = self.__calculate_variance()
 
-            average_values = self.__calculate_average_values__(xi_values)
+            return np.sqrt(variance)
 
-            mean = self.__calculate_weighted_mean__(average_values, ni_values)
-            variance = self.__calculate_variance__(average_values, ni_values, mean)
-            std_deviation = np.sqrt(variance)
-            data_range = np.ptp(xi_values)
+    def __calculate_data_range(self):
+        xi_values = self.__calculate_xi_values()
+        if self.__data_type_is_array:
+            return np.ptp(xi_values)
+
+        if self.__data_type_is_intervals():
+            return np.sqrt(xi_values)
+
+    def __calculate_numerical_characteristics(self):
+        mean = self.__calculate_mean()
+        variance = self.__calculate_variance()
+        std_deviation = self.__calculate_std_deviation()
+        data_range = self.__calculate_data_range()
 
         return mean, variance, std_deviation, data_range
 
     def display_numerical_characteristics(self=None):
-        mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics__(self.data)
+        mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics()
         data_type = self.data['type']
         print("\nЧисловые характеристики выборки:")
 
         if data_type == DataType.ARRAY.value:
-            self.__display_numerical_characteristics_formulas_array__()
+            self.__text_numerical_characteristics_formulas_array()
 
         if data_type == DataType.INTERVALS.value:
-            self.__display_numerical_characteristics_formulas_intervals__()
+            self.__text_numerical_characteristics_formulas_intervals()
 
         print("\nСреднее значение (x̄):", mean)
         print("Дисперсия (D):", variance)
@@ -331,9 +430,17 @@ def main():
             elif choice == '3':
                 statistics_instance.display_frequency_distribution()
             elif choice == '4':
+                statistics_instance.display_histogram()
+            elif choice == '5':
+                statistics_instance.display_polygon()
+            elif choice == '6':
+                statistics_instance.display_empirical_distribution()
+            elif choice == '7':
+                statistics_instance.display_plot_empirical_distribution()
+            elif choice == '8':
                 statistics_instance.display_numerical_characteristics()
             else:
-                print("Некорректный выбор. Пожалуйста, выберите от 0 до 4.")
+                print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
 
 
 if __name__ == "__main__":
