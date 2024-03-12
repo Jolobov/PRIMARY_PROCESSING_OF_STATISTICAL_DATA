@@ -1,0 +1,30 @@
+{
+  "type": "INTERVALS",
+  "data": [
+    {
+      "start": 8,
+      "end": 10,
+      "frequency": 8
+    },
+    {
+      "start": 10,
+      "end": 12,
+      "frequency": 24
+    },
+    {
+      "start": 12,
+      "end": 14,
+      "frequency": 36
+    },
+    {
+      "start": 14,
+      "end": 16,
+      "frequency": 23
+    },
+    {
+      "start": 16,
+      "end": 18,
+      "frequency": 9
+    }
+  ]
+}
