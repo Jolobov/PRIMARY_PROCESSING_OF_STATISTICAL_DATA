@@ -185,7 +185,7 @@ class Statistics:
         variation_series = self.__calculate_variation_series()
         print(variation_series)
 
-    def __calculate_frequency_distribution(self, data):
+    def __calculate_frequency_distribution(self):
         variation_series = self.__calculate_variation_series()
         data_values = self.__get_data_values()
         frequencies = []
@@ -201,15 +201,15 @@ class Statistics:
         return variation_series, frequencies, relative_frequencies
 
     def display_frequency_distribution(self=None):
-        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution(self.data))
+        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution())
 
         print("\nСтатистический ряд частот:")
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
-    def __plot_histogram(self, data):
+    def __plot_histogram(self):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
         plt.xlabel('Значения')
@@ -218,11 +218,11 @@ class Statistics:
         plt.show()
 
     def display_histogram(self=None):
-        self.__plot_histogram(self.data)
+        self.__plot_histogram()
 
-    def __plot_polygon(self, data):
+    def __plot_polygon(self):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         plt.plot(variation_series, relative_frequencies, marker='o')
         plt.xlabel('Значения')
@@ -231,11 +231,11 @@ class Statistics:
         plt.show()
 
     def display_polygon(self=None):
-        self.__plot_polygon(self.data)
+        self.__plot_polygon()
 
-    def __calculate_empirical_distribution(self, data):
+    def __calculate_empirical_distribution(self):
         variation_series, frequencies, _ = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         sum_frequencies = sum(frequencies)
 
@@ -246,7 +246,7 @@ class Statistics:
 
     def display_empirical_distribution(self=None):
         variation_series, probability_distribution, cumulative_distribution = (
-            self.__calculate_empirical_distribution(self.data))
+            self.__calculate_empirical_distribution())
 
         print("\nЭмпирическая функция распределения:")
         for variation, probability, cumulative in zip(variation_series, probability_distribution,
@@ -255,8 +255,9 @@ class Statistics:
                   f"Уникальные значения: {probability},"
                   f"Накопительная функция распределения: {cumulative}")
 
-    def __plot_empirical_distribution(self, data):
-        variation_series, probability_distribution, cumulative_distribution = (self.__calculate_empirical_distribution(data))
+    def __plot_empirical_distribution(self):
+        variation_series, probability_distribution, cumulative_distribution = \
+            (self.__calculate_empirical_distribution())
 
         plt.plot(variation_series, cumulative_distribution, marker='o')
         plt.xlabel('Значения')
@@ -265,7 +266,7 @@ class Statistics:
         plt.show()
 
     def display_plot_empirical_distribution(self=None):
-        self.__plot_empirical_distribution(self.data)
+        self.__plot_empirical_distribution()
 
     @staticmethod
     def __text_numerical_characteristics_formulas_array():
