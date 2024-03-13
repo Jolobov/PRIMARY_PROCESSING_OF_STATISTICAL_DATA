@@ -58,7 +58,7 @@ class Data:
 
     @staticmethod
     def __write_data(data_type):
-        data = {'type': data_type}
+        data = {'type': data_type.name}
 
         if data_type == DataType.ARRAY:
             data['data'] = [float(x) for x in input("Введите числа через пробел: ").split()]
@@ -94,11 +94,11 @@ class Data:
 
     def input_keyboard(self=None):
         while True:
-            file_type = self.__input_type()
-            data_type = self.__get_data_type(file_type)
+            input_type = self.__input_type()
+            file_type = self.__get_data_type(input_type)
 
             if file_type in [type for type in DataType]:
-                self.data = self.__write_data(data_type)
+                self.data = self.__write_data(file_type)
                 break
 
             else:
@@ -155,15 +155,16 @@ class Statistics:
             return list(np.array([values["frequency"] for values in data_values]))
 
     def show_data(self=None):
-        print(self.data.values())
-        data_type = self.data.get('type')
-        data_body = np.array(self.data['data'])
+        data_type = self.__get_data_type()
+        data_values = self.__get_data_values()
 
-        if data_type == DataType.ARRAY.value:
-            print("\nСодержимое файла:\n", data_body)
+        if self.__data_type_is_array():
+            print("\nСодержимое файла:\n", data_values)
 
-        elif data_type == DataType.INTERVALS.value:
-            print("\nСодержимое файла:\n", data_body)
+        elif self.__data_type_is_intervals():
+            print("\nСодержимое файла:")
+            for value in data_values:
+                print(value)
 
         else:
             print("\nНеизвестный тип данных:", data_type)
@@ -183,9 +184,9 @@ class Statistics:
 
     def display_variation_series(self=None):
         variation_series = self.__calculate_variation_series()
-        print(variation_series)
+        print("\nВариационный ряд:\n", variation_series)
 
-    def __calculate_frequency_distribution(self, data):
+    def __calculate_frequency_distribution(self):
         variation_series = self.__calculate_variation_series()
         data_values = self.__get_data_values()
         frequencies = []
@@ -201,15 +202,15 @@ class Statistics:
         return variation_series, frequencies, relative_frequencies
 
     def display_frequency_distribution(self=None):
-        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution(self.data))
+        variation_series, frequencies, relative_frequencies = (self.__calculate_frequency_distribution())
 
         print("\nСтатистический ряд частот:")
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
-    def __plot_histogram(self, data):
+    def __plot_histogram(self):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
         plt.xlabel('Значения')
@@ -218,11 +219,11 @@ class Statistics:
         plt.show()
 
     def display_histogram(self=None):
-        self.__plot_histogram(self.data)
+        self.__plot_histogram()
 
-    def __plot_polygon(self, data):
+    def __plot_polygon(self):
         variation_series, frequencies, relative_frequencies = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         plt.plot(variation_series, relative_frequencies, marker='o')
         plt.xlabel('Значения')
@@ -231,11 +232,11 @@ class Statistics:
         plt.show()
 
     def display_polygon(self=None):
-        self.__plot_polygon(self.data)
+        self.__plot_polygon()
 
-    def __calculate_empirical_distribution(self, data):
+    def __calculate_empirical_distribution(self):
         variation_series, frequencies, _ = (
-            self.__calculate_frequency_distribution(data))
+            self.__calculate_frequency_distribution())
 
         sum_frequencies = sum(frequencies)
 
@@ -246,17 +247,18 @@ class Statistics:
 
     def display_empirical_distribution(self=None):
         variation_series, probability_distribution, cumulative_distribution = (
-            self.__calculate_empirical_distribution(self.data))
+            self.__calculate_empirical_distribution())
 
         print("\nЭмпирическая функция распределения:")
         for variation, probability, cumulative in zip(variation_series, probability_distribution,
                                                       cumulative_distribution):
-            print(f"Значение: {variation},"
-                  f"Уникальные значения: {probability},"
+            print(f"Значение: {variation}, "
+                  f"Уникальные значения: {probability}, "
                   f"Накопительная функция распределения: {cumulative}")
 
-    def __plot_empirical_distribution(self, data):
-        variation_series, probability_distribution, cumulative_distribution = (self.__calculate_empirical_distribution(data))
+    def __plot_empirical_distribution(self):
+        variation_series, probability_distribution, cumulative_distribution = \
+            (self.__calculate_empirical_distribution())
 
         plt.plot(variation_series, cumulative_distribution, marker='o')
         plt.xlabel('Значения')
@@ -265,21 +267,21 @@ class Statistics:
         plt.show()
 
     def display_plot_empirical_distribution(self=None):
-        self.__plot_empirical_distribution(self.data)
+        self.__plot_empirical_distribution()
 
     @staticmethod
     def __text_numerical_characteristics_formulas_array():
         print("\nФормула для среднего значения (х): x̄ = Σxi / n")
-        print("\nФормула для дисперсии (D): D = Σ(xi - x̄)² / n")
-        print("\nФормула для стандартного отклонения (σв): σ = √D")
-        print("\nФормула для размаха (S): S = σ / √n")
+        print("Формула для дисперсии (D): D = Σ(xi - x̄)² / n")
+        print("Формула для стандартного отклонения (σв): σ = √D")
+        print("Формула для размаха (S): S = σ / √n")
 
     @staticmethod
     def __text_numerical_characteristics_formulas_intervals():
         print("\nФормула для среднего значения (хв): x̄ = Σ(xi * pi)")
-        print("\nФормула для дисперсии (D): D = Σ(xi - x̄)² * pi")
-        print("\nФормула для стандартного отклонения (σ): σ = √D")
-        print("\nФормула для размаха (S): S = σ / √n")
+        print("Формула для дисперсии (D): D = Σ(xi - x̄)² * pi")
+        print("Формула для стандартного отклонения (σ): σ = √D")
+        print("Формула для размаха (S): S = σ / √n")
 
     def __calculate_mean(self):
         if self.__data_type_is_array():
@@ -336,13 +338,12 @@ class Statistics:
 
     def display_numerical_characteristics(self=None):
         mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics()
-        data_type = self.data['type']
         print("\nЧисловые характеристики выборки:")
 
-        if data_type == DataType.ARRAY.value:
+        if self.__data_type_is_array():
             self.__text_numerical_characteristics_formulas_array()
 
-        if data_type == DataType.INTERVALS.value:
+        if self.__data_type_is_intervals():
             self.__text_numerical_characteristics_formulas_intervals()
 
         print("\nСреднее значение (x̄):", mean)
