@@ -141,7 +141,7 @@ class Statistics:
             return list(set(interval_values))
 
     def __calculate_average_xi_values(self):
-        xi_values = self.__calculate_xi_values
+        xi_values = self.__calculate_xi_values()
 
         return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
 
@@ -269,32 +269,17 @@ class Statistics:
 
     @staticmethod
     def __text_numerical_characteristics_formulas_array():
-        print("\nФормула для среднего значения:")
-        print("сумма всех значений / количество значений")
-
-        print("\nФормула для дисперсии:")
-        print("сумма квадратов разностей между каждым значением и средним, деленная на количество значений")
-
-        print("\nФормула для стандартного отклонения:")
-        print("квадратный корень из дисперсии")
-
-        print("\nФормула для размаха:")
-        print("разница между максимальным и минимальным значениями в ряде")
+        print("\nФормула для среднего значения (х): x̄ = Σxi / n")
+        print("\nФормула для дисперсии (D): D = Σ(xi - x̄)² / n")
+        print("\nФормула для стандартного отклонения (σв): σ = √D")
+        print("\nФормула для размаха (S): S = σ / √n")
 
     @staticmethod
     def __text_numerical_characteristics_formulas_intervals():
-        print("\nФормула для среднего значения:")
-        print("сумма (середина интервала * частота) / общее количество значений")
-
-        print("\nФормула для дисперсии:")
-        print("(сумма (квадрат разности среднего значения интервала и среднего значения всего ряда * частота)) "
-              "/ общее количество значений")
-
-        print("\nФормула для стандартного отклонения:")
-        print("квадратный корень из дисперсии интервалов")
-
-        print("\nФормула для размаха:")
-        print("разница между верхним и нижним концами интервала с наибольшей длиной")
+        print("\nФормула для среднего значения (хв): x̄ = Σ(xi * pi)")
+        print("\nФормула для дисперсии (D): D = Σ(xi - x̄)² * pi")
+        print("\nФормула для стандартного отклонения (σ): σ = √D")
+        print("\nФормула для размаха (S): S = σ / √n")
 
     def __calculate_mean(self):
         if self.__data_type_is_array():
