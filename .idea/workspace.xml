@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b789ca87-4f85-4426-afa2-7e5b160b3879" name="Changes" comment="Initial commit&#10;&#10;Signed-off-by: Jolobov &lt;Jolobov.it@gmail.com&gt;">
-      <change beforePath="$PROJECT_DIR$/Lab_6.py" beforeDir="false" afterPath="$PROJECT_DIR$/Lab_6.py" afterDir="false" />
-    </list>
+    <list default="true" id="b789ca87-4f85-4426-afa2-7e5b160b3879" name="Changes" comment="Initial commit&#10;&#10;Signed-off-by: Jolobov &lt;Jolobov.it@gmail.com&gt;" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -104,7 +102,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710396852510</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Initial commit&#10;&#10;Signed-off-by: Jolobov &lt;Jolobov.it@gmail.com&gt;">
+      <option name="closed" value="true" />
+      <created>1710397206684</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1710397206684</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
