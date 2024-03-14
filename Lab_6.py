@@ -5,9 +5,11 @@ import json
 from scipy.stats import norm
 from enum import Enum
 
+
 class DataType(Enum):
     ARRAY = "ARRAY"
     INTERVALS = "INTERVALS"
+
 
 class Data:
 
@@ -58,7 +60,8 @@ class Data:
         except Exception as e:
             print(f"Произошла неизвестная ошибка при чтении файла '{file_path}': {e}")
 
-    def __file_write(self, data_type):
+    @staticmethod
+    def __file_write(data_type):
         data = {'type': data_type}
 
         if data_type == DataType.ARRAY.value:
@@ -98,7 +101,7 @@ class Data:
             input_value = self.__get_input_value()
             data_type = self.__get_data_type(input_value)
 
-            if data_type in [type for type in DataType]:
+            if data_type in [types for types in DataType]:
                 self.set_data(self.__file_write(data_type))
 
             else:
