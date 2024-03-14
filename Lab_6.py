@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 
+from scipy.stats import norm
 from enum import Enum
 
 class DataType(Enum):
@@ -349,6 +350,54 @@ class Statistics:
         print("Стандартное отклонение (σ):", std_deviation)
         print("Размах (S):", data_range)
 
+    def __calculate_estimate_parameters(self):
+        mean = self.__calculate_mean()
+        std_dev = self.__calculate_std_deviation()
+
+        return mean, std_dev
+
+    def display_estimate_parameters(self):
+        mean, std_dev = self.__calculate_estimate_parameters()
+        print("\nТочечные оценки параметров для предполагаемого нормального распределения:")
+        print("Среднее значение (μ*):", mean)
+        print("Стандартное отклонение (σ*):", std_dev)
+
+    def __calculate_normal_pdf(self):
+        ## todo x - случайное число которое задает пользователь, сделать ввод
+        mean, std_dev = self.__calculate_estimate_parameters()
+        x = 2
+
+        coefficient = 1 / (std_dev * np.sqrt(2 * np.pi))
+        exponent = np.exp(-((x - mean) ** 2) / (2 * std_dev ** 2))
+
+        return coefficient * exponent
+
+    def display_normal_pdf_function(self):
+        mean, std_dev = self.__calculate_estimate_parameters()
+        normal_pdf = self.__calculate_normal_pdf()
+
+        print("\nФункция плотности вероятности (pdf) предполагаемого нормального распределения:")
+        print("f(x | μ*, σ*):", f"x - value, μ* - {mean}, σ* - {std_dev}")
+        print(f"f(x | μ*, σ*) = 1 / (σ* * √(2π)) * exp(-(x - μ*)² / (2 * σ*²))")
+        print(f"f(x | μ*, σ*) = {normal_pdf}")
+
+    def __plot_normal_distribution(self):
+        mean, std_dev = self.__calculate_estimate_parameters()
+
+        x = np.linspace(mean - 3 * std_dev, mean + 3 * std_dev, 1000)
+        y = norm.pdf(x, mean, std_dev)
+
+        plt.plot(x, y, label=f'μ*={mean}, σ*={std_dev}')
+        plt.title('Плотность нормального распределения')
+        plt.xlabel('Значение')
+        plt.ylabel('Плотность')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
+    def display_normal_distribution(self=None):
+        self.__plot_normal_distribution()
+
 
 class Menu:
     @staticmethod
@@ -412,15 +461,15 @@ def main():
             elif choice == '3':
                 statistics_instance.display_frequency_distribution()
             elif choice == '4':
-                statistics_instance.display_histogram()
-            elif choice == '5':
-                statistics_instance.display_polygon()
-            elif choice == '6':
-                statistics_instance.display_empirical_distribution()
-            elif choice == '7':
-                statistics_instance.display_plot_empirical_distribution()
-            elif choice == '8':
                 statistics_instance.display_numerical_characteristics()
+            elif choice == '5':
+                statistics_instance.display_estimate_parameters()
+            elif choice == '6':
+                statistics_instance.display_normal_pdf_function()
+            elif choice == '7':
+                statistics_instance.display_empirical_distribution()
+            elif choice == '8':
+                statistics_instance.display_normal_distribution()
             else:
                 print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
 
