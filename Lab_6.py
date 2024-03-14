@@ -4,48 +4,49 @@ import json
 
 from enum import Enum
 
-
 class DataType(Enum):
-    ARRAY = 'Массив'
-    INTERVALS = 'Интервалы'
-
+    ARRAY = "ARRAY"
+    INTERVALS = "INTERVALS"
 
 class Data:
+
     def __init__(self):
-        self.data = {}
+        self.data = None
+        self.data_type = None
+        self.data_path = None
+        self.input_value = None
 
     @staticmethod
-    def __input_type():
-        return input(f"\nВведите тип данных {DataType.ARRAY.value} или {DataType.INTERVALS.value} (1-2): ")
+    def __get_input_value():
+        return input(f"\nВведите тип данных {DataType.ARRAY.value} или {DataType.INTERVALS.value} (1-2):")
 
     @staticmethod
-    def __get_file_path(file_type):
-        if file_type == '1':
+    def __get_data_type(input_value):
+        if input_value == '1':
+            return DataType.ARRAY.value
+
+        elif input_value == '2':
+            return DataType.INTERVALS.value
+
+        else:
+            return None
+
+    @staticmethod
+    def __get_file_path(input_value):
+        if input_value == '1':
             return 'data_array.json'
 
-        elif file_type == '2':
+        elif input_value == '2':
             return 'data_intervals.json'
 
         else:
             return None
 
     @staticmethod
-    def __get_data_type(data_type):
-        if data_type == '1':
-            return DataType.ARRAY
-
-        elif data_type == '2':
-            return DataType.INTERVALS
-
-        else:
-            return None
-
-    @staticmethod
-    def __read_file(file_path):
+    def __file_read(file_path):
         try:
             with open(file_path, 'r') as file:
                 print(f"Файл '{file_path}' успешно найден.")
-
                 return json.load(file)
         except FileNotFoundError:
             print(f"Ошибка: Файл '{file_path}' не найден.")
@@ -56,14 +57,13 @@ class Data:
         except Exception as e:
             print(f"Произошла неизвестная ошибка при чтении файла '{file_path}': {e}")
 
-    @staticmethod
-    def __write_data(data_type):
+    def __file_write(self, data_type):
         data = {'type': data_type}
 
-        if data_type == DataType.ARRAY:
+        if data_type == DataType.ARRAY.value:
             data['data'] = [float(x) for x in input("Введите числа через пробел: ").split()]
 
-        elif data_type == DataType.INTERVALS:
+        elif data_type == DataType.INTERVALS.value:
             num_values = int(input("\nВведите количество значений: "))
             data['data'] = []
 
@@ -75,55 +75,53 @@ class Data:
                 data["data"].append({"start": start, "end": end, "frequency": frequency})
 
         else:
-            print("Неизвестный тип данных.")
+            print(f"Неизвестный тип данных {data_type}.")
 
         return data
 
     def input_file(self):
         while True:
-            input_type = self.__input_type()
-            file_type = self.__get_data_type(input_type)
-            file_path = self.__get_file_path(input_type)
+            input_value = self.__get_input_value()
+            data_type = self.__get_data_type(input_value)
+            data_path = self.__get_file_path(input_value)
 
-            if file_type in [type for type in DataType]:
-                self.data = self.__read_file(file_path)
-                break
+            if data_type not in [data_type.value for data_type in DataType]:
+                print("\nНекорректный выбор. Пожалуйста, выберите 1 или 2.")
 
             else:
-                print("\nНекорректный выбор. Пожалуйста, выберите 1 или 2.")
+                self.set_data(self.__file_read(data_path))
+                break
 
     def input_keyboard(self=None):
         while True:
-            file_type = self.__input_type()
-            data_type = self.__get_data_type(file_type)
+            input_value = self.__get_input_value()
+            data_type = self.__get_data_type(input_value)
 
-            if file_type in [type for type in DataType]:
-                self.data = self.__write_data(data_type)
-                break
+            if data_type in [type for type in DataType]:
+                self.set_data(self.__file_write(data_type))
 
             else:
                 print("\nНекорректный выбор. Пожалуйста, выберите 1 или 2.")
+
+    def set_data(self, new_data):
+        self.data = new_data
 
     def get_data(self=None):
         return self.data
 
 
 class Statistics:
-
-    def __init__(self):
-        self.data = {}
-
-    def set_data(self, data):
-        self.data = data
+    def __init__(self, new_data):
+        self.data = new_data
 
     def __get_data_type(self):
         return self.data['type']
 
     def __data_type_is_array(self):
-        return self.data['type'] == DataType.ARRAY.name
+        return self.data['type'] == DataType.ARRAY.value
 
     def __data_type_is_intervals(self):
-        return self.data['type'] == DataType.INTERVALS.name
+        return self.data['type'] == DataType.INTERVALS.value
 
     def __get_data_values(self):
         return self.data['data']
@@ -141,7 +139,7 @@ class Statistics:
             return list(set(interval_values))
 
     def __calculate_average_xi_values(self):
-        xi_values = self.__calculate_xi_values
+        xi_values = self.__calculate_xi_values()
 
         return [(xi + xi_next) / 2 for xi, xi_next in zip(xi_values[:-1], xi_values[1:])]
 
@@ -155,15 +153,16 @@ class Statistics:
             return list(np.array([values["frequency"] for values in data_values]))
 
     def show_data(self=None):
-        print(self.data.values())
-        data_type = self.data.get('type')
-        data_body = np.array(self.data['data'])
+        data_type = self.__get_data_type()
+        data_values = self.__get_data_values()
 
-        if data_type == DataType.ARRAY.value:
-            print("\nСодержимое файла:\n", data_body)
+        if self.__data_type_is_array():
+            print("\nСодержимое файла:\n", data_values)
 
-        elif data_type == DataType.INTERVALS.value:
-            print("\nСодержимое файла:\n", data_body)
+        elif self.__data_type_is_intervals():
+            print("\nСодержимое файла:")
+            for value in data_values:
+                print(value)
 
         else:
             print("\nНеизвестный тип данных:", data_type)
@@ -183,7 +182,7 @@ class Statistics:
 
     def display_variation_series(self=None):
         variation_series = self.__calculate_variation_series()
-        print(variation_series)
+        print("\nВариационный ряд:\n", variation_series)
 
     def __calculate_frequency_distribution(self):
         variation_series = self.__calculate_variation_series()
@@ -251,8 +250,8 @@ class Statistics:
         print("\nЭмпирическая функция распределения:")
         for variation, probability, cumulative in zip(variation_series, probability_distribution,
                                                       cumulative_distribution):
-            print(f"Значение: {variation},"
-                  f"Уникальные значения: {probability},"
+            print(f"Значение: {variation}, "
+                  f"Уникальные значения: {probability}, "
                   f"Накопительная функция распределения: {cumulative}")
 
     def __plot_empirical_distribution(self):
@@ -270,26 +269,17 @@ class Statistics:
 
     @staticmethod
     def __text_numerical_characteristics_formulas_array():
-        print("\nФормула для среднего значения:")
-        print("сумма всех значений / количество значений")
-
-        print("\nФормула для дисперсии:")
-        print("сумма квадратов разностей между каждым значением и средним, деленная на количество значений")
-
-        print("\nФормула для стандартного отклонения:")
-        print("квадратный корень из дисперсии")
+        print("\nФормула для среднего значения (х): x̄ = Σxi / n")
+        print("Формула для дисперсии (D): D = Σ(xi - x̄)² / n")
+        print("Формула для стандартного отклонения (σв): σ = √D")
+        print("Формула для размаха (S): S = σ / √n")
 
     @staticmethod
     def __text_numerical_characteristics_formulas_intervals():
-        print("\nФормула для среднего значения:")
-        print("сумма (середина интервала * частота) / общее количество значений")
-
-        print("\nФормула для дисперсии:")
-        print("(сумма (квадрат разности среднего значения интервала и среднего значения всего ряда * частота)) "
-              "/ общее количество значений")
-
-        print("\nФормула для стандартного отклонения:")
-        print("квадратный корень из дисперсии интервалов")
+        print("\nФормула для среднего значения (хв): x̄ = Σ(xi * pi)")
+        print("Формула для дисперсии (D): D = Σ(xi - x̄)² * pi")
+        print("Формула для стандартного отклонения (σ): σ = √D")
+        print("Формула для размаха (S): S = σ / √n")
 
     def __calculate_mean(self):
         if self.__data_type_is_array():
@@ -328,27 +318,36 @@ class Statistics:
 
             return np.sqrt(variance)
 
+    def __calculate_data_range(self):
+        xi_values = self.__calculate_xi_values()
+        if self.__data_type_is_array:
+            return np.ptp(xi_values)
+
+        if self.__data_type_is_intervals():
+            return np.sqrt(xi_values)
+
     def __calculate_numerical_characteristics(self):
         mean = self.__calculate_mean()
         variance = self.__calculate_variance()
         std_deviation = self.__calculate_std_deviation()
+        data_range = self.__calculate_data_range()
 
-        return mean, variance, std_deviation
+        return mean, variance, std_deviation, data_range
 
     def display_numerical_characteristics(self=None):
-        mean, variance, std_deviation = self.__calculate_numerical_characteristics()
-        data_type = self.data['type']
+        mean, variance, std_deviation, data_range = self.__calculate_numerical_characteristics()
         print("\nЧисловые характеристики выборки:")
 
-        if data_type == DataType.ARRAY.value:
+        if self.__data_type_is_array():
             self.__text_numerical_characteristics_formulas_array()
 
-        if data_type == DataType.INTERVALS.value:
+        if self.__data_type_is_intervals():
             self.__text_numerical_characteristics_formulas_intervals()
 
         print("\nСреднее значение (x̄):", mean)
         print("Дисперсия (D):", variance)
         print("Стандартное отклонение (σ):", std_deviation)
+        print("Размах (S):", data_range)
 
 
 class Menu:
@@ -375,8 +374,6 @@ class Menu:
 
 def main():
     data_instance = Data()
-    statistics_instance = Statistics()
-
     data_loaded = False
 
     while True:
@@ -399,7 +396,7 @@ def main():
             print("Некорректный выбор. Пожалуйста, выберите 1 или 2.")
 
     if data_loaded:
-        statistics_instance.set_data(data_instance.get_data())
+        statistics_instance = Statistics(data_instance.get_data())
 
         while True:
             Menu.display_main()
@@ -415,9 +412,17 @@ def main():
             elif choice == '3':
                 statistics_instance.display_frequency_distribution()
             elif choice == '4':
+                statistics_instance.display_histogram()
+            elif choice == '5':
+                statistics_instance.display_polygon()
+            elif choice == '6':
+                statistics_instance.display_empirical_distribution()
+            elif choice == '7':
+                statistics_instance.display_plot_empirical_distribution()
+            elif choice == '8':
                 statistics_instance.display_numerical_characteristics()
             else:
-                print("Некорректный выбор. Пожалуйста, выберите от 0 до 4.")
+                print("Некорректный выбор. Пожалуйста, выберите от 0 до 8.")
 
 
 if __name__ == "__main__":
