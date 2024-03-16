@@ -3,11 +3,12 @@ from enum import Enum
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import norm
 
 
 class DataType(Enum):
-    ARRAY = 'Массив'
-    INTERVALS = 'Интервалы'
+    ARRAY = "ARRAY"
+    INTERVALS = "INTERVALS"
 
 
 class DataManager:
@@ -186,13 +187,25 @@ class DataProcessor:
             variance = self.variance()
             return np.sqrt(variance)
 
+    def data_range(self):
+        if self.data_is_array():
+            processed_data = self.processed_data()
+            return np.linspace(min(processed_data),
+                               max(processed_data), 100)
+
+        if self.data_is_intervals():
+            all_intervals = self.raw_data
+            return np.linspace(min(interval['start'] for interval in all_intervals),
+                               max(interval['end'] for interval in all_intervals), 100)
+
     def numerical_characteristics(self):
         mean = self.mean()
         variance = self.variance()
         std_deviation = self.std_deviation()
-        return mean, variance, std_deviation
+        data_range = self.data_range()
+        return mean, variance, std_deviation, data_range
 
-    ## todo Дописать методы
+    ## todo Дописать методы c 7
 
 
 class Visualizer:
@@ -205,6 +218,9 @@ class Visualizer:
     def show_data(self):
         data_type = self.data_processor.data_type
         data_body = self.data_processor.raw_data
+
+        print(data_type)
+        print(data_body)
 
         if data_type in (DataType.ARRAY.value, DataType.INTERVALS.value):
             print(f"\nСодержимое файла (тип данных {data_type}):\n", data_body)
@@ -224,15 +240,37 @@ class Visualizer:
         for value, freq, rel_freq in zip(variation_series, frequencies, relative_frequencies):
             print(f"Значение: {value}, Частота: {freq}, Относительная частота: {rel_freq}")
 
-    def plot_histogram_frequency_distribution(self):
-        variation_series, frequencies, relative_frequencies = \
-            (self.data_processor.frequency_distribution())
+    def plot_distribution(self):
+        _, frequencies, relative_frequencies = self.data_processor.frequency_distribution()
+        mean, _, std_dev, data_range = self.data_processor.numerical_characteristics()
 
-        plt.bar(variation_series, frequencies, width=0.8, align='center', alpha=0.7)
-        plt.xlabel('Значения')
-        plt.ylabel('Частота')
-        plt.title('Статистический ряд')
+        plt.figure(figsize=(10, 6))
+
+        # Построение гистограммы относительных частот
+        # Если данные представлены массивом значений
+        if self.data_processor.data_is_array():
+            plt.hist(self.data_processor.processed_data(), bins='auto', density=True, alpha=0.7,
+                     label='Эмпирическое распределение')
+        # Если данные представлены интервалами
+        elif self.data_processor.data_is_intervals():
+            interval_centers = np.array(
+                [(interval['start'] + interval['end']) / 2 for interval in self.data_processor.raw_data])
+            plt.bar(interval_centers, relative_frequencies, width=np.diff(data_range).mean(), alpha=0.7,
+                    label='Эмпирическое распределение')
+
+        # Построение графика плотности нормального распределения
+        plt.plot(data_range, norm.pdf(data_range, mean, std_dev), label='Нормальное распределение', color='red')
+        plt.legend()
+        plt.title('Гистограмма и плотность нормального распределения')
+        plt.xlabel('Значение')
+        plt.ylabel('Плотность вероятности')
         plt.show()
+
+    def print_distribution_formula(self):
+        _, _, std_dev, _ = self.data_processor.numerical_characteristics()
+        print("\nФормула плотности нормального распределения с оцененными параметрами:")
+        print(f"f(x) = 1 / (σ*√(2π)) * e^(-(x - a*)^2 / (2σ*^2))")
+        print(f"где a* = среднее выборки, σ* = {std_dev}")
 
 
 ## todo Переписать меню
@@ -279,6 +317,10 @@ def main():
             data_visualizer.variation_series()
         elif choice == '3':
             data_visualizer.frequency_distribution()
+        elif choice == '4':
+            data_visualizer.plot_distribution()
+        elif choice == '5':
+            data_visualizer.print_distribution_formula()
         else:
             print("Некорректный выбор. Пожалуйста, выберите от 0 до 4.")
 
