@@ -26,13 +26,13 @@ class DataManager:
         if choice == '1':
             return self.input_data_keyboard()
         elif choice == '2':
-            file_path = input("Введите путь к файлу: ")
+            file_path = input("\nВведите путь к файлу: ")
             return self.read_data_from_file(file_path)
         elif choice == '0':
-            print("Программа завершена.")
+            print("\nПрограмма завершена.")
             return
         else:
-            print("Некорректный выбор. Попробуйте снова.")
+            print("\nНекорректный выбор. Попробуйте снова.")
             return self.input_data()
 
     def input_data_keyboard(self):
@@ -197,14 +197,13 @@ class DataProcessor:
         mean = self.calculate_mean()
         variance = self.calculate_variance()
         std_deviation = self.calculate_std_deviation()
-        data_range = self.calculate_data_range()
-        return mean, variance, std_deviation, data_range
+        return mean, variance, std_deviation
 
     def calculate_theoretical_probabilities(self):
         if not self.data_is_intervals():
             raise ValueError("\nТеоретические вероятности могут быть вычислены только для интервальных данных.")
 
-        mean, _, std_dev, _ = self.calculate_numerical_characteristics()
+        mean, _, std_dev = self.calculate_numerical_characteristics()
         probabilities = []
 
         for interval in self.raw_data:
@@ -249,10 +248,15 @@ class Visualizer:
 
     def print_data(self):
         data_type = self.data_processor.data_type
-        data_body = self.data_processor.raw_data
+        raw_data = self.data_processor.raw_data
 
-        if data_type in (DataType.ARRAY.value, DataType.INTERVALS.value):
-            print(f"\nСодержимое файла (тип данных {data_type}):\n", data_body)
+        if data_type == DataType.ARRAY.value:
+            print("\nСодержимое файла:\n", raw_data)
+
+        elif data_type == DataType.INTERVALS.value:
+            print("\nСодержимое файла:")
+            for value in raw_data:
+                print(value)
 
         else:
             print("\nНеизвестный тип данных:", data_type)
@@ -302,10 +306,10 @@ class Visualizer:
         plt.show()
 
     def print_distribution_formula(self):
-        _, _, std_dev, _ = self.data_processor.calculate_numerical_characteristics()
+        mean, _, std_dev = self.data_processor.calculate_numerical_characteristics()
         print("\nФормула плотности нормального распределения с оцененными параметрами:")
         print(f"f(x) = 1 / (σ*√(2π)) * e^(-(x - a*)^2 / (2σ*^2))")
-        print(f"где a* = среднее выборки, σ* = {std_dev}")
+        print(f"где a* = {mean:.4f}, σ* = {std_dev:.4f}")
 
     def print_theoretical_probabilities(self):
         if self.data_processor.data_is_intervals():
@@ -353,13 +357,13 @@ class Visualizer:
         alpha = self.data_processor.prompt_for_significance_level()
         chi_squared = self.data_processor.calculate_chi_squared()
         chi_squared_critical = self.data_processor.calculate_chi_squared_critical(alpha)
-        print(f"Наблюдаемое значение хи-квадрат: {chi_squared:.4f}")
+        print(f"\nНаблюдаемое значение хи-квадрат: {chi_squared:.4f}")
         print(f"Критическое значение хи-квадрат для уровня значимости {alpha}: {chi_squared_critical:.4f}")
 
         if chi_squared < chi_squared_critical:
-            print("Нулевая гипотеза принимается.")
+            print("\nНулевая гипотеза принимается.")
         else:
-            print("Нулевая гипотеза отвергается.")
+            print("\nНулевая гипотеза отвергается.")
 
 
 class Menu:
